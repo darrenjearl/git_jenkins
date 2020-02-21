@@ -1,0 +1,4 @@
+this is a text file
+this is the second line
+
+fourth
