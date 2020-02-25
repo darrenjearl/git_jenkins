@@ -14,33 +14,35 @@ function(add_unit_test target)
 		set(multiValues SRC LIB PARAM)
 		cmake_parse_arguments(${prefix} "${options}" "${singleArg}" "${multiValues}" ${ARGN} )
 		#message( "--------------------------" )
-		#message( "target: ${target}")
+		#message( "target: ${project-target}")
 		#message( "src: ${TEST_SRC}" )
 		#message( "lib: ${TEST_LIB}" )
 		#message( "param: ${TEST_PARAM}" )
 		#message( "unparsed: ${TEST_UNPARSED_ARGUMENTS}" )
 		#message( "argn: ${ARGN}")
 		#message( "--------------------------" )
+		
+		set(project-target "${PROJECT_NAME}-${target}")
 
 
 		# next 3 lines are standard for building ctest
-		add_executable(${target} ${TEST_SRC} )
-		target_link_libraries(${target} ${TEST_LIB})
-		add_test(${target} ${target} ${TEST_PARAM})
+		add_executable(${project-target} ${TEST_SRC} )
+		target_link_libraries(${project-target} ${TEST_LIB})
+		add_test(${project-target} ${project-target} ${TEST_PARAM})
 		
 		#now the magic required to rerun the test iff rebuilt
-		# this runs the command, and after success creates an output file 'target.passed' which indicates to the system the unit test was successful
-		add_custom_command( OUTPUT ${target}.passed
-						    COMMAND ${target} ${TEST_PARAM}
-							COMMAND ${CMAKE_COMMAND} -E touch ${target}.passed
-							COMMENT "running unit test '${target} ${TEST_PARAM}'")
-		set(run_test UBTECH_UNIT_TEST_${target}) 		# make our actual name longer and more descriptive to prevent accidental clashes
+		# this runs the command, and after success creates an output file 'project-target.passed' which indicates to the system the unit test was successful
+		add_custom_command( OUTPUT ${project-target}.passed
+						    COMMAND ${project-target} ${TEST_PARAM}
+							COMMAND ${CMAKE_COMMAND} -E touch ${project-target}.passed
+							COMMENT "running unit test '${project-target} ${TEST_PARAM}'")
+		set(run_test UBTECH_UNIT_TEST_${project-target}) 		# make our actual name longer and more descriptive to prevent accidental clashes
 		add_custom_target( ${run_test}					# make a target based on the above file (for add dependencies)
-						   DEPENDS ${target}.passed )
-		add_custom_command( TARGET ${target}			# on building the executable, remove the stale status file
+						   DEPENDS ${project-target}.passed )
+		add_custom_command( TARGET ${project-target}			# on building the executable, remove the stale status file
 						    PRE_BUILD
-							COMMAND rm -f ${target}.passed 
-							COMMENT "resetting test status of ${target}")
+							COMMAND ${CMAKE_COMMAND} -E remove -f ${project-target}.passed 
+							COMMENT "resetting test status of ${project-target}")
 		
 		add_dependencies( UBTECH_UNIT_TESTS ${run_test}) # adds the test to the top level target which always gets 'built'
 		
@@ -50,3 +52,4 @@ add_custom_target(UBTECH_UNIT_TESTS ALL)
 
 
 add_subdirectory( exe1 )
+add_subdirectory( exe2 )
